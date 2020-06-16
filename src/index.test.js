@@ -22,7 +22,7 @@ describe('formatDate', () => {
   })
 })
 
-describe.only('format', () => {
+describe('format', () => {
   test('returns null', () => {
     const report = format(null)
     expect(report).toBeNull()
@@ -34,6 +34,11 @@ describe.only('format', () => {
     } catch (e) {
       expect(e).toMatchSnapshot()
     }
+  })
+
+  test('runs JSON.parse on data', () => {
+    const report = format(JSON.stringify(sample))
+    expect(report).toMatchSnapshot()
   })
 
   test('return formatted object', () => {

@@ -56,7 +56,7 @@ const format = (data, stringify = false) => {
     summaries,
     visibility,
     cve_ids,
-  } = data
+  } = typeof data === 'string' ? JSON.parse(data) : data
 
   const author_type =
     severity && severity.author_type ? severity.author_type : null
