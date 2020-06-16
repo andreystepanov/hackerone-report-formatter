@@ -47,7 +47,8 @@ var format = function format(data) {
     return null;
   }
 
-  var {
+  var _ref = typeof data === 'string' ? JSON.parse(data) : data,
+      {
     id,
     reporter,
     team: {
@@ -80,8 +81,8 @@ var format = function format(data) {
     summaries,
     visibility,
     cve_ids
-  } = data,
-      team = _objectWithoutProperties(data.team, ["handle", "offers_bounties", "default_currency", "profile_picture_urls", "only_cleared_hackers", "award_miles", "profile"]);
+  } = _ref,
+      team = _objectWithoutProperties(_ref.team, ["handle", "offers_bounties", "default_currency", "profile_picture_urls", "only_cleared_hackers", "award_miles", "profile"]);
 
   var author_type = severity && severity.author_type ? severity.author_type : null;
   var {
@@ -136,18 +137,18 @@ var format = function format(data) {
     // first_synced_at: moment().valueOf(),
     // last_synced_at: moment().valueOf(),
     vulnerability_information: vulnerability_information || null,
-    summaries: summaries.filter((_ref) => {
+    summaries: summaries.filter((_ref2) => {
       var {
         id,
         content
-      } = _ref;
+      } = _ref2;
       return id && content;
-    }).map((_ref2) => {
+    }).map((_ref3) => {
       var {
         id,
         content,
         category
-      } = _ref2;
+      } = _ref3;
       return {
         id,
         by: category == 'team' ? 'program' : 'hacker',
@@ -160,12 +161,12 @@ var format = function format(data) {
     //     [summary.by]: summary.content,
     //   }
     // }, {}),
-    attachments: attachments.map((_ref3) => {
+    attachments: attachments.map((_ref4) => {
       var {
         file_name: filename,
         expiring_url: url
-      } = _ref3,
-          att = _objectWithoutProperties(_ref3, ["file_name", "expiring_url"]);
+      } = _ref4,
+          att = _objectWithoutProperties(_ref4, ["file_name", "expiring_url"]);
 
       return _objectSpread(_objectSpread({}, att), {}, {
         filename,
@@ -194,11 +195,11 @@ var format = function format(data) {
         cve_ids
       } = item;
 
-      var _ref4 = actr || {},
+      var _ref5 = actr || {},
           {
         profile_picture_urls
-      } = _ref4,
-          actor = _objectWithoutProperties(_ref4, ["profile_picture_urls"]);
+      } = _ref5,
+          actor = _objectWithoutProperties(_ref5, ["profile_picture_urls"]);
 
       var action = (0, _lodash.snakeCase)(type.split('::')[1]);
       var activity = {
@@ -367,11 +368,11 @@ var format = function format(data) {
   return stringify ? JSON.stringify(json) : json;
 };
 
-var getActionChanges = (_ref5) => {
+var getActionChanges = (_ref6) => {
   var {
     additional_data
-  } = _ref5,
-      action = _objectWithoutProperties(_ref5, ["additional_data"]);
+  } = _ref6,
+      action = _objectWithoutProperties(_ref6, ["additional_data"]);
 
   var data = _objectSpread(_objectSpread({}, additional_data), action);
 
