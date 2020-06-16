@@ -1,27 +1,27 @@
 import moment from 'moment'
 import { pick, omit, snakeCase } from 'lodash'
 
-export const toUnix = str => {
-  const date = moment(str)
+export const formatDate = (date, unix = false) => {
+  const momentDate = date ? moment(date, true) : null
 
-  if (str && date.isValid()) {
-    return date.valueOf()
+  if (momentDate && momentDate.isValid()) {
+    const utcDate = momentDate.utc()
+
+    if (unix) {
+      return utcDate.valueOf()
+    }
+
+    return utcDate.format('YYYY-MM-DDTHH:mm:ss.SSS\\Z')
   }
 
   return null
 }
 
-export const fromUnix = date => {
-  const momentDate = moment(typeof date === 'string' ? date : Number(date))
-
-  if (date && momentDate.isValid()) {
-    return momentDate.utc().format('YYYY-MM-DDTHH:mm:ss.SSS\\Z')
+const format = (data, stringify = false) => {
+  if (!data) {
+    return null
   }
 
-  return null
-}
-
-const format = data => {
   const {
     id,
     reporter,
@@ -122,10 +122,10 @@ const format = data => {
     vote_count,
     cve_ids: cve_ids,
     visibility,
-    hacker_agreed_on_going_public_at: toUnix(h_agreed_at),
-    platform_agreed_on_going_public_at: toUnix(p_agreed_at),
-    created_at: toUnix(created_at),
-    disclosed_at: toUnix(disclosed_at),
+    hacker_agreed_on_going_public_at: formatDate(h_agreed_at, true),
+    platform_agreed_on_going_public_at: formatDate(p_agreed_at),
+    created_at: formatDate(created_at, true),
+    disclosed_at: formatDate(disclosed_at, true),
     // first_synced_at: moment().valueOf(),
     // last_synced_at: moment().valueOf(),
     vulnerability_information: vulnerability_information || null,
@@ -179,8 +179,8 @@ const format = data => {
         message: message || null,
         attachments,
         automated_response,
-        updated_at: toUnix(updated_at),
-        created_at: toUnix(created_at),
+        updated_at: formatDate(updated_at, true),
+        created_at: formatDate(created_at, true),
         actor: actor
           ? {
               handle: actor.username || team_handle,
@@ -349,7 +349,7 @@ const format = data => {
     json.program.ibb = true
   }
 
-  return json
+  return stringify ? JSON.stringify(json) : json
 }
 
 const getActionChanges = ({ additional_data, ...action }) => {
