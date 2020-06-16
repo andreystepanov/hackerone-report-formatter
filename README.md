@@ -2,7 +2,23 @@
 
 Formats HackerOne report into more simple and readable form
 
-#### Converts this
+## Usage
+
+```javascript
+import format from 'hackerone-report-formatter'
+
+// JSON received from https://hackerone.com/reports/{id}.json endpoint
+const raw = {...}
+
+try {
+  const report = format(raw)
+  return report
+} catch (e) {
+  console.log('Error occured')
+}
+```
+
+### Converts this
 
 ```json
 {
@@ -750,7 +766,7 @@ Formats HackerOne report into more simple and readable form
 }
 ```
 
-#### Into this
+### Into this
 
 ```json
 {
