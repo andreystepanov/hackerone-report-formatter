@@ -17,6 +17,25 @@ export const formatDate = (date, unix = false) => {
   return null
 }
 
+const getAvatar = (pictures = null) => {
+  if (!pictures) {
+    return null
+  }
+
+  const url =
+    typeof pictures === 'object' ? pictures.medium || pictures.small : pictures
+
+  if (
+    url.includes('rails/active_storage') ||
+    url.includes('assets/avatars/default-') ||
+    url.length > 500
+  ) {
+    return null
+  }
+
+  return url
+}
+
 const format = (data, stringify = false) => {
   if (!data) {
     return null
@@ -67,12 +86,8 @@ const format = (data, stringify = false) => {
   const awarded_to = []
   let isIBB = false
 
-  const hacker_picture_url = hacker_pictures
-    ? hacker_pictures.medium || hacker_pictures.small
-    : null
-  const program_picture_url = program_pictures
-    ? program_pictures.medium || program_pictures.small
-    : null
+  const hacker_picture_url = getAvatar(hacker_pictures)
+  const program_picture_url = getAvatar(program_pictures)
 
   const programJson = {
     id: team.id,
@@ -94,11 +109,7 @@ const format = (data, stringify = false) => {
       ? {
           verified,
           handle: username,
-          profile_picture_url: hacker_picture_url.includes(
-            'assets/avatars/default-',
-          )
-            ? null
-            : hacker_picture_url,
+          profile_picture_url: hacker_picture_url,
         }
       : null,
     program: programJson,
@@ -194,11 +205,10 @@ const format = (data, stringify = false) => {
         activity.actor.verified = true
       }
 
-      if (
-        profile_picture_urls &&
-        typeof profile_picture_urls.medium === 'string'
-      ) {
-        activity.actor.profile_picture_url = profile_picture_urls.medium
+      const actorAvatar = getAvatar(profile_picture_urls)
+
+      if (actorAvatar) {
+        activity.actor.profile_picture_url = actorAvatar
       }
 
       if (actor.hackerone_triager) {
@@ -227,14 +237,6 @@ const format = (data, stringify = false) => {
 
       if (!automated_response) {
         delete activity.automated_response
-      }
-
-      if (
-        activity.actor &&
-        activity.actor.profile_picture_url &&
-        activity.actor.profile_picture_url.includes('assets/avatars/default-')
-      ) {
-        delete activity.actor.profile_picture_url
       }
 
       if (!Array.isArray(attachments)) {

@@ -40,6 +40,22 @@ var formatDate = function formatDate(date) {
 
 exports.formatDate = formatDate;
 
+var getAvatar = function getAvatar() {
+  var pictures = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+
+  if (!pictures) {
+    return null;
+  }
+
+  var url = typeof pictures === 'object' ? pictures.medium || pictures.small : pictures;
+
+  if (url.includes('rails/active_storage') || url.includes('assets/avatars/default-') || url.length > 500) {
+    return null;
+  }
+
+  return url;
+};
+
 var format = function format(data) {
   var stringify = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
@@ -92,8 +108,8 @@ var format = function format(data) {
   var username = reporter ? reporter.username : handle;
   var awarded_to = [];
   var isIBB = false;
-  var hacker_picture_url = hacker_pictures ? hacker_pictures.medium || hacker_pictures.small : null;
-  var program_picture_url = program_pictures ? program_pictures.medium || program_pictures.small : null;
+  var hacker_picture_url = getAvatar(hacker_pictures);
+  var program_picture_url = getAvatar(program_pictures);
   var programJson = {
     id: team.id,
     handle,
@@ -112,7 +128,7 @@ var format = function format(data) {
     hacker: reporter ? {
       verified,
       handle: username,
-      profile_picture_url: hacker_picture_url.includes('assets/avatars/default-') ? null : hacker_picture_url
+      profile_picture_url: hacker_picture_url
     } : null,
     program: programJson,
     original_report_id,
@@ -221,8 +237,10 @@ var format = function format(data) {
         activity.actor.verified = true;
       }
 
-      if (profile_picture_urls && typeof profile_picture_urls.medium === 'string') {
-        activity.actor.profile_picture_url = profile_picture_urls.medium;
+      var actorAvatar = getAvatar(profile_picture_urls);
+
+      if (actorAvatar) {
+        activity.actor.profile_picture_url = actorAvatar;
       }
 
       if (actor.hackerone_triager) {
@@ -247,10 +265,6 @@ var format = function format(data) {
 
       if (!automated_response) {
         delete activity.automated_response;
-      }
-
-      if (activity.actor && activity.actor.profile_picture_url && activity.actor.profile_picture_url.includes('assets/avatars/default-')) {
-        delete activity.actor.profile_picture_url;
       }
 
       if (!Array.isArray(attachments)) {

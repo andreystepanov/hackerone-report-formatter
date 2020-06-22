@@ -50,4 +50,19 @@ describe('format', () => {
     const report = format(sample, true)
     expect(report).toMatchSnapshot()
   })
+
+  test('ignores long avatar links', () => {
+    const report = format({
+      ...sample,
+      reporter: {
+        ...sample.reporter,
+        profile_picture_urls: {
+          medium: 'https://hackerone.com/rails/active_storage/123',
+        },
+      },
+    })
+
+    // console.log(report.hacker)
+    expect(report).toMatchSnapshot()
+  })
 })
