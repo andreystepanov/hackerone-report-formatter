@@ -3,9 +3,11 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = exports.formatDate = void 0;
+exports.default = exports.formatDate = exports.normalize = void 0;
 
 var _moment = _interopRequireDefault(require("moment"));
+
+var _normalize = _interopRequireDefault(require("./normalize"));
 
 var _lodash = require("lodash");
 
@@ -20,6 +22,9 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 function _objectWithoutProperties(source, excluded) { if (source == null) return {}; var target = _objectWithoutPropertiesLoose(source, excluded); var key, i; if (Object.getOwnPropertySymbols) { var sourceSymbolKeys = Object.getOwnPropertySymbols(source); for (i = 0; i < sourceSymbolKeys.length; i++) { key = sourceSymbolKeys[i]; if (excluded.indexOf(key) >= 0) continue; if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue; target[key] = source[key]; } } return target; }
 
 function _objectWithoutPropertiesLoose(source, excluded) { if (source == null) return {}; var target = {}; var sourceKeys = Object.keys(source); var key, i; for (i = 0; i < sourceKeys.length; i++) { key = sourceKeys[i]; if (excluded.indexOf(key) >= 0) continue; target[key] = source[key]; } return target; }
+
+var normalize = _normalize.default;
+exports.normalize = normalize;
 
 var formatDate = function formatDate(date) {
   var unix = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
@@ -57,7 +62,10 @@ var getAvatar = function getAvatar() {
 };
 
 var format = function format(data) {
-  var stringify = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+  var {
+    string = false,
+    normalize = false
+  } = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
   if (!data) {
     return null;
@@ -110,15 +118,21 @@ var format = function format(data) {
   var isIBB = false;
   var hacker_picture_url = getAvatar(hacker_pictures);
   var program_picture_url = getAvatar(program_pictures);
-  var programJson = {
+
+  var programJson = _objectSpread(_objectSpread(_objectSpread(_objectSpread({
     id: team.id,
     handle,
-    offers_bounties,
-    profile_picture_url: program_picture_url,
-    award_miles,
-    only_verified_hackers,
+    profile_picture_url: program_picture_url
+  }, offers_bounties && {
+    offers_bounties
+  }), award_miles && {
+    award_miles
+  }), only_verified_hackers && {
+    only_verified_hackers
+  }), {}, {
     profile
-  };
+  });
+
   var json = {
     id,
     title,
@@ -189,7 +203,7 @@ var format = function format(data) {
         url
       });
     }),
-    timeline: activities.map(item => {
+    activities: activities.map(item => {
       var {
         created_at,
         updated_at,
@@ -224,7 +238,7 @@ var format = function format(data) {
         message: message || null,
         attachments,
         automated_response,
-        updated_at: formatDate(updated_at, true),
+        updated_at: updated_at !== created_at ? formatDate(updated_at, true) : null,
         created_at: formatDate(created_at, true),
         actor: actor ? {
           handle: actor.username || team_handle
@@ -232,6 +246,10 @@ var format = function format(data) {
         // raw: item,
 
       };
+
+      if (!activity.updated_at) {
+        delete activity.updated_at;
+      }
 
       if (actor.cleared) {
         activity.actor.verified = true;
@@ -315,10 +333,11 @@ var format = function format(data) {
         var bounty = Number(bounty_amount || 0);
         var bonus = Number(bonus_amount || 0);
         activity.award = {
+          id,
           bounty_amount: bounty,
           bonus_amount: bonus,
           total_amount: bounty + bonus,
-          currency,
+          // currency,
           awarded_to: collaborator ? collaborator.username : null
         };
         awarded_to.push(activity.award);
@@ -367,7 +386,7 @@ var format = function format(data) {
         bounty_amount: getSum(bounties, 'bounty_amount'),
         bonus_amount: getSum(bounties, 'bonus_amount'),
         total_amount: getSum(bounties, 'total_amount'),
-        currency: default_currency,
+        // currency: default_currency,
         awarded_to: bounties
       };
     };
@@ -379,7 +398,11 @@ var format = function format(data) {
     json.program.ibb = true;
   }
 
-  return stringify ? JSON.stringify(json) : json;
+  if (normalize) {
+    json = (0, _normalize.default)(json);
+  }
+
+  return string ? JSON.stringify(json) : json;
 };
 
 var getActionChanges = (_ref6) => {

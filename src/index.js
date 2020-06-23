@@ -1,5 +1,8 @@
 import moment from 'moment'
+import norm from './normalize'
 import { pick, omit, snakeCase } from 'lodash'
+
+export const normalize = norm
 
 export const formatDate = (date, unix = false) => {
   const momentDate = date ? moment(date, true) : null
@@ -36,7 +39,7 @@ const getAvatar = (pictures = null) => {
   return url
 }
 
-const format = (data, stringify = false) => {
+const format = (data, { string = false, normalize = false } = {}) => {
   if (!data) {
     return null
   }
@@ -92,14 +95,14 @@ const format = (data, stringify = false) => {
   const programJson = {
     id: team.id,
     handle,
-    offers_bounties,
     profile_picture_url: program_picture_url,
-    award_miles,
-    only_verified_hackers,
+    ...(offers_bounties && { offers_bounties }),
+    ...(award_miles && { award_miles }),
+    ...(only_verified_hackers && { only_verified_hackers }),
     profile,
   }
 
-  const json = {
+  let json = {
     id,
     title,
     state: state.toLowerCase(),
@@ -160,7 +163,7 @@ const format = (data, stringify = false) => {
         url,
       }),
     ),
-    timeline: activities.map(item => {
+    activities: activities.map(item => {
       const {
         created_at,
         updated_at,
@@ -190,7 +193,8 @@ const format = (data, stringify = false) => {
         message: message || null,
         attachments,
         automated_response,
-        updated_at: formatDate(updated_at, true),
+        updated_at:
+          updated_at !== created_at ? formatDate(updated_at, true) : null,
         created_at: formatDate(created_at, true),
         actor: actor
           ? {
@@ -199,6 +203,10 @@ const format = (data, stringify = false) => {
           : null,
         // item: actor,
         // raw: item,
+      }
+
+      if (!activity.updated_at) {
+        delete activity.updated_at
       }
 
       if (actor.cleared) {
@@ -284,10 +292,11 @@ const format = (data, stringify = false) => {
         const bonus = Number(bonus_amount || 0)
 
         activity.award = {
+          id,
           bounty_amount: bounty,
           bonus_amount: bonus,
           total_amount: bounty + bonus,
-          currency,
+          // currency,
           awarded_to: collaborator ? collaborator.username : null,
         }
 
@@ -339,7 +348,7 @@ const format = (data, stringify = false) => {
         bounty_amount: getSum(bounties, 'bounty_amount'),
         bonus_amount: getSum(bounties, 'bonus_amount'),
         total_amount: getSum(bounties, 'total_amount'),
-        currency: default_currency,
+        // currency: default_currency,
         awarded_to: bounties,
       }
     }
@@ -351,7 +360,11 @@ const format = (data, stringify = false) => {
     json.program.ibb = true
   }
 
-  return stringify ? JSON.stringify(json) : json
+  if (normalize) {
+    json = norm(json)
+  }
+
+  return string ? JSON.stringify(json) : json
 }
 
 const getActionChanges = ({ additional_data, ...action }) => {

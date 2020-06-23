@@ -1,8 +1,35 @@
 // import moment from 'moment'
-import format, { formatDate } from './'
+import format, { normalize, formatDate } from './'
+import pick from 'lodash/pick'
 import sample from '../report.sample.json'
 
 const date = '2020-06-11T19:35:58.827Z'
+const metadataKeys = [
+  'id',
+  'title',
+  'state',
+  'substate',
+  'hacker.handle',
+  'hacker.verified',
+  'hacker.twitter_handle',
+  'hacker.profile_picture_url',
+  'program.handle',
+  'program.profile.name',
+  'program.profile.twitter_handle',
+  'program.profile_picture_url',
+  'disclosed_at',
+  'created_at',
+  'vote_count',
+  'platform',
+  'visibility',
+  'cve_ids',
+  'weakness.id',
+  'severity.rating',
+  'severity.score',
+  'award.bounty_amount',
+  'award.bonus_amount',
+  'award.awarded_to',
+]
 
 describe('formatDate', () => {
   test('defined', () => {
@@ -19,6 +46,24 @@ describe('formatDate', () => {
 
   test('returns valid date (string)', () => {
     expect(formatDate(date)).toEqual(date)
+  })
+})
+
+describe('normalize', () => {
+  test('defined', () => {
+    expect(normalize).toBeDefined()
+  })
+
+  test('returns normalized object', () => {
+    const report = format(sample)
+    const reports = [report, { ...report, id: report.id + 1 }].map(rep =>
+      pick(rep, metadataKeys),
+    )
+    const data = normalize(reports)
+
+    // console.log(JSON.stringify(data, undefined, 3))
+    // console.log(JSON.stringify(data.result, undefined, 3))
+    expect(data).toMatchSnapshot()
   })
 })
 
@@ -47,7 +92,12 @@ describe('format', () => {
   })
 
   test('return formatted JSON', () => {
-    const report = format(sample, true)
+    const report = format(sample, { string: true })
+    expect(report).toMatchSnapshot()
+  })
+
+  test('return normalized object', () => {
+    const report = format(sample, { normalize: true })
     expect(report).toMatchSnapshot()
   })
 
