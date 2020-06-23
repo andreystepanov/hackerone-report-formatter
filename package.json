@@ -1,6 +1,6 @@
 {
   "name": "hackerone-report-formatter",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Formats HackerOne report into more readable form",
   "main": "dist/index.js",
   "scripts": {
