@@ -2,6 +2,7 @@
 import format, { normalize, formatDate } from './'
 import pick from 'lodash/pick'
 import sample from '../report.sample.json'
+import sampleWithAttachments from '../report-with-attachments.sample.json'
 
 const date = '2020-06-11T19:35:58.827Z'
 const metadataKeys = [
@@ -12,11 +13,11 @@ const metadataKeys = [
   'hacker.handle',
   'hacker.verified',
   'hacker.twitter_handle',
-  'hacker.profile_picture_url',
+  'hacker.picture_url',
   'program.handle',
-  'program.profile.name',
-  'program.profile.twitter_handle',
-  'program.profile_picture_url',
+  'program.name',
+  'program.twitter_handle',
+  'program.picture_url',
   'disclosed_at',
   'created_at',
   'vote_count',
@@ -54,15 +55,25 @@ describe('normalize', () => {
     expect(normalize).toBeDefined()
   })
 
-  test('returns normalized object', () => {
-    const report = format(sample)
+  test('returns normalized list of reports', () => {
+    const report = format(sample, { shortLinks: true })
     const reports = [report, { ...report, id: report.id + 1 }].map(rep =>
       pick(rep, metadataKeys),
     )
     const data = normalize(reports)
 
     // console.log(JSON.stringify(data, undefined, 3))
-    // console.log(JSON.stringify(data.result, undefined, 3))
+    expect(data).toMatchSnapshot()
+  })
+
+  test('returns normalized report', () => {
+    const report = format(sampleWithAttachments, {
+      shortLinks: true,
+      noAttachmentUrls: true,
+    })
+    const data = normalize(report)
+
+    // console.log(JSON.stringify(data.entities.attachments, undefined, 3))
     expect(data).toMatchSnapshot()
   })
 })

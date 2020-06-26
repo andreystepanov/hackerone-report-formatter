@@ -47,6 +47,7 @@ exports.formatDate = formatDate;
 
 var getAvatar = function getAvatar() {
   var pictures = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+  var shortLinks = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
   if (!pictures) {
     return null;
@@ -58,11 +59,13 @@ var getAvatar = function getAvatar() {
     return null;
   }
 
-  return url;
+  return shortLinks ? url.split('variants')[1] : url;
 };
 
 var format = function format(data) {
   var {
+    noAttachmentUrls = false,
+    shortLinks = false,
     string = false,
     normalize = false
   } = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
@@ -116,22 +119,20 @@ var format = function format(data) {
   var username = reporter ? reporter.username : handle;
   var awarded_to = [];
   var isIBB = false;
-  var hacker_picture_url = getAvatar(hacker_pictures);
-  var program_picture_url = getAvatar(program_pictures);
+  var hacker_picture_url = getAvatar(hacker_pictures, shortLinks);
+  var program_picture_url = getAvatar(program_pictures, shortLinks);
 
   var programJson = _objectSpread(_objectSpread(_objectSpread(_objectSpread({
     id: team.id,
     handle,
-    profile_picture_url: program_picture_url
+    picture_url: program_picture_url
   }, offers_bounties && {
     offers_bounties
   }), award_miles && {
     award_miles
   }), only_verified_hackers && {
     only_verified_hackers
-  }), {}, {
-    profile
-  });
+  }), profile);
 
   var json = {
     id,
@@ -142,7 +143,7 @@ var format = function format(data) {
     hacker: reporter ? {
       verified,
       handle: username,
-      profile_picture_url: hacker_picture_url
+      picture_url: hacker_picture_url
     } : null,
     program: programJson,
     original_report_id,
@@ -199,7 +200,8 @@ var format = function format(data) {
           att = _objectWithoutProperties(_ref4, ["file_name", "expiring_url"]);
 
       return _objectSpread(_objectSpread({}, att), {}, {
-        filename,
+        filename
+      }, noAttachmentUrls === false && {
         url
       });
     }),
@@ -236,7 +238,16 @@ var format = function format(data) {
         id,
         type: (0, _lodash.snakeCase)(action),
         message: message || null,
-        attachments,
+        attachments: attachments && attachments.map((_ref6) => {
+          var {
+            url
+          } = _ref6,
+              file = _objectWithoutProperties(_ref6, ["url"]);
+
+          return _objectSpread(_objectSpread({}, file), noAttachmentUrls === false && {
+            url
+          });
+        }),
         automated_response,
         updated_at: updated_at !== created_at ? formatDate(updated_at, true) : null,
         created_at: formatDate(created_at, true),
@@ -255,7 +266,7 @@ var format = function format(data) {
         activity.actor.verified = true;
       }
 
-      var actorAvatar = getAvatar(profile_picture_urls);
+      var actorAvatar = getAvatar(profile_picture_urls, shortLinks);
 
       if (actorAvatar) {
         activity.actor.profile_picture_url = actorAvatar;
@@ -405,11 +416,11 @@ var format = function format(data) {
   return string ? JSON.stringify(json) : json;
 };
 
-var getActionChanges = (_ref6) => {
+var getActionChanges = (_ref7) => {
   var {
     additional_data
-  } = _ref6,
-      action = _objectWithoutProperties(_ref6, ["additional_data"]);
+  } = _ref7,
+      action = _objectWithoutProperties(_ref7, ["additional_data"]);
 
   var data = _objectSpread(_objectSpread({}, additional_data), action);
 

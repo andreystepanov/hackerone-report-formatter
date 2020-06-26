@@ -20,7 +20,7 @@ export const formatDate = (date, unix = false) => {
   return null
 }
 
-const getAvatar = (pictures = null) => {
+const getAvatar = (pictures = null, shortLinks = false) => {
   if (!pictures) {
     return null
   }
@@ -36,10 +36,18 @@ const getAvatar = (pictures = null) => {
     return null
   }
 
-  return url
+  return shortLinks ? url.split('variants')[1] : url
 }
 
-const format = (data, { string = false, normalize = false } = {}) => {
+const format = (
+  data,
+  {
+    noAttachmentUrls = false,
+    shortLinks = false,
+    string = false,
+    normalize = false,
+  } = {},
+) => {
   if (!data) {
     return null
   }
@@ -89,17 +97,17 @@ const format = (data, { string = false, normalize = false } = {}) => {
   const awarded_to = []
   let isIBB = false
 
-  const hacker_picture_url = getAvatar(hacker_pictures)
-  const program_picture_url = getAvatar(program_pictures)
+  const hacker_picture_url = getAvatar(hacker_pictures, shortLinks)
+  const program_picture_url = getAvatar(program_pictures, shortLinks)
 
   const programJson = {
     id: team.id,
     handle,
-    profile_picture_url: program_picture_url,
+    picture_url: program_picture_url,
     ...(offers_bounties && { offers_bounties }),
     ...(award_miles && { award_miles }),
     ...(only_verified_hackers && { only_verified_hackers }),
-    profile,
+    ...profile,
   }
 
   let json = {
@@ -112,7 +120,7 @@ const format = (data, { string = false, normalize = false } = {}) => {
       ? {
           verified,
           handle: username,
-          profile_picture_url: hacker_picture_url,
+          picture_url: hacker_picture_url,
         }
       : null,
     program: programJson,
@@ -160,7 +168,7 @@ const format = (data, { string = false, normalize = false } = {}) => {
       ({ file_name: filename, expiring_url: url, ...att }) => ({
         ...att,
         filename,
-        url,
+        ...(noAttachmentUrls === false && { url }),
       }),
     ),
     activities: activities.map(item => {
@@ -191,7 +199,12 @@ const format = (data, { string = false, normalize = false } = {}) => {
         id,
         type: snakeCase(action),
         message: message || null,
-        attachments,
+        attachments:
+          attachments &&
+          attachments.map(({ url, ...file }) => ({
+            ...file,
+            ...(noAttachmentUrls === false && { url }),
+          })),
         automated_response,
         updated_at:
           updated_at !== created_at ? formatDate(updated_at, true) : null,
@@ -213,7 +226,7 @@ const format = (data, { string = false, normalize = false } = {}) => {
         activity.actor.verified = true
       }
 
-      const actorAvatar = getAvatar(profile_picture_urls)
+      const actorAvatar = getAvatar(profile_picture_urls, shortLinks)
 
       if (actorAvatar) {
         activity.actor.profile_picture_url = actorAvatar
