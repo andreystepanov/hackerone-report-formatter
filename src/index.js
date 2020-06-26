@@ -229,7 +229,7 @@ const format = (
       const actorAvatar = getAvatar(profile_picture_urls, shortLinks)
 
       if (actorAvatar) {
-        activity.actor.profile_picture_url = actorAvatar
+        activity.actor.picture_url = actorAvatar
       }
 
       if (actor.hackerone_triager) {
